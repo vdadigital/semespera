@@ -1,0 +1,4 @@
+---
+deployment:
+  tasks:
+    - /bin/touch /home2/vdadigit/semespera.vdadigital.com.br/tmp/restart.txt
