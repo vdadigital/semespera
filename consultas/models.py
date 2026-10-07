@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-
+from django.core.validators import FileExtensionValidator
 
 # ──────────────────────────────────────────
 # EMPRESA
@@ -24,7 +24,6 @@ class Empresa(models.Model):
         verbose_name = 'Empresa'
         verbose_name_plural = 'Empresas'
 
-
 # ──────────────────────────────────────────
 # PERFIL DO USUÁRIO (vincula User à Empresa)
 # ──────────────────────────────────────────
@@ -40,16 +39,22 @@ class PerfilUsuario(models.Model):
         verbose_name = 'Perfil de Usuário'
         verbose_name_plural = 'Perfis de Usuários'
 
-
 # ──────────────────────────────────────────
 # ESPECIALIDADE (dinâmica por empresa)
 # ──────────────────────────────────────────
 
 class Especialidade(models.Model):
-    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name='especialidades')
+    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name='especialidades', null=True, blank=True)
     nome = models.CharField(max_length=100)
-    icone = models.CharField(max_length=10, default='🩺')
-    ativo = models.BooleanField(default=True)
+    
+    # Aqui está o nosso novo campo com suporte a SVG e validação de segurança!
+    icone = models.FileField(
+        upload_to='icones_especialidades/', 
+        null=True, 
+        blank=True, 
+        verbose_name='Ícone (SVG/PNG)',
+        validators=[FileExtensionValidator(allowed_extensions=['svg', 'png', 'jpg', 'jpeg'])]
+    )
 
     def __str__(self):
         return f'{self.nome} ({self.empresa})'
@@ -58,7 +63,6 @@ class Especialidade(models.Model):
         verbose_name = 'Especialidade'
         verbose_name_plural = 'Especialidades'
         ordering = ['nome']
-
 
 # ──────────────────────────────────────────
 # AGENDA
@@ -79,7 +83,6 @@ class Agenda(models.Model):
         verbose_name = 'Agenda'
         verbose_name_plural = 'Agendas'
 
-
 # ──────────────────────────────────────────
 # PACIENTE
 # ──────────────────────────────────────────
@@ -98,7 +101,6 @@ class Paciente(models.Model):
     class Meta:
         verbose_name = 'Paciente'
         verbose_name_plural = 'Pacientes'
-
 
 # ──────────────────────────────────────────
 # CONSULTA
@@ -134,7 +136,6 @@ class Consulta(models.Model):
                 name='ficha_unica_por_agenda'
             )
         ]
-
 
 # ──────────────────────────────────────────
 # PACIENTE CONTA (login do paciente no app)
