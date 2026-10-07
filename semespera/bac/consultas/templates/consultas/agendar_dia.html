@@ -1,0 +1,187 @@
+{% extends "consultas/base.html" %}
+{% block content %}
+
+<style>
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+.esp-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:10px; }
+.esp-btn { display:flex; flex-direction:column; align-items:center; gap:6px; padding:14px 10px; border-radius:10px; border:2px solid #d0daf0; background:#fff; cursor:pointer; transition:.2s; font-size:13px; font-weight:700; color:#444; }
+.esp-btn:hover { border-color:var(--cor,#1a3a8f); color:var(--cor,#1a3a8f); background:#f0f4ff; }
+.esp-btn.selected { border-color:var(--cor,#1a3a8f); background:var(--cor,#1a3a8f); color:#fff; }
+.esp-icon { font-size:24px; }
+.agenda-table { width:100%; border-collapse:collapse; }
+.agenda-table th { font-size:11px; font-weight:800; color:#888; letter-spacing:1px; padding:10px 12px; text-align:left; background:#f8faff; }
+.agenda-table td { padding:12px; border-bottom:1px solid #eef2fb; font-size:14px; }
+.vagas-bg { flex:1; height:6px; border-radius:3px; background:#e8eef8; }
+.vagas-fill { height:6px; border-radius:3px; background:var(--cor,#1a3a8f); }
+
+/* Modal de nova especialidade */
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:1000; align-items:center; justify-content:center; }
+.modal-overlay.open { display:flex; }
+.modal-box { background:#fff; border-radius:14px; padding:28px 28px 24px; width:100%; max-width:400px; box-shadow:0 20px 60px rgba(0,0,0,.2); }
+.modal-title { font-size:15px; font-weight:800; color:var(--cor,#1a3a8f); margin-bottom:20px; display:flex; align-items:center; gap:8px; }
+.modal-actions { display:flex; gap:10px; margin-top:20px; }
+.btn-add-esp { display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border-radius:8px; border:2px dashed #c7d4f0; background:#f8faff; color:var(--cor,#1a3a8f); font-size:13px; font-weight:700; cursor:pointer; transition:.2s; }
+.btn-add-esp:hover { border-color:var(--cor,#1a3a8f); background:#eef4ff; }
+</style>
+
+<div class="grid2">
+
+  <!-- Coluna esquerda: formulário de agenda -->
+  <div>
+    <div class="card">
+      <div class="card-title">📅 Nova Agenda de Atendimento</div>
+
+      {% if especialidades %}
+      <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="acao" value="agenda">
+        <input type="hidden" name="especialidade_id" id="esp-input">
+
+        <div class="form-group">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+            <span class="form-label" style="margin-bottom:0;">ESPECIALIDADE</span>
+            <button type="button" class="btn-add-esp" onclick="abrirModal()">
+              ＋ Adicionar
+            </button>
+          </div>
+          <div class="esp-grid">
+            {% for esp in especialidades %}
+            <div class="esp-btn {% if forloop.first %}selected{% endif %}"
+                 data-val="{{ esp.id }}" onclick="selecionarEsp(this)">
+              <span class="esp-icon">{{ esp.icone }}</span>
+              {{ esp.nome|upper }}
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">DATA DA CONSULTA</label>
+          <input type="date" name="data" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">QUANTIDADE DE VAGAS</label>
+          <input type="number" name="vagas" class="form-control" min="1" max="200" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">HORÁRIO DE INÍCIO</label>
+          <input type="time" name="horario_inicio" class="form-control">
+        </div>
+        <button class="btn btn-primary btn-full" type="submit">📅 SALVAR AGENDA</button>
+      </form>
+
+      {% else %}
+      <!-- Sem especialidades: mostra só o botão de adicionar -->
+      <div style="text-align:center; padding:32px 20px; color:#999;">
+        <div style="font-size:40px; margin-bottom:12px;">🩺</div>
+        <p style="margin-bottom:16px;">Nenhuma especialidade cadastrada.</p>
+        <button type="button" class="btn btn-primary" onclick="abrirModal()">＋ Adicionar Especialidade</button>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+
+  <!-- Coluna direita: agendas cadastradas -->
+  <div>
+    <div class="card">
+      <div class="card-title">📋 Agendas Cadastradas</div>
+      {% if agendas %}
+      <table class="agenda-table">
+        <thead>
+          <tr>
+            <th>Especialidade</th>
+            <th>Data</th>
+            <th>Vagas</th>
+            <th>Horário</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ag in agendas %}
+          <tr>
+            <td>{{ ag.especialidade.icone }} {{ ag.especialidade.nome }}</td>
+            <td>{{ ag.data|date:"d/m/Y" }}</td>
+            <td>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div class="vagas-bg">
+                  <div class="vagas-fill" style="width:{% widthratio ag.vagas_restantes ag.vagas_total 100 %}%"></div>
+                </div>
+                <strong>{{ ag.vagas_restantes }}/{{ ag.vagas_total }}</strong>
+              </div>
+            </td>
+            <td>{% if ag.horario_inicio %}{{ ag.horario_inicio|time:"H:i" }}{% else %}—{% endif %}</td>
+            <td>
+              <a href="{% url 'excluir_agenda' ag.id %}" class="btn btn-danger"
+                 style="padding:6px 12px; font-size:12px;"
+                 onclick="return confirm('Deseja excluir esta agenda?');">🗑️</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div style="text-align:center; padding:50px; color:#999;">Nenhuma agenda cadastrada.</div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+
+<!-- ── MODAL: Adicionar Especialidade ── -->
+<div class="modal-overlay" id="modalEsp">
+  <div class="modal-box">
+    <div class="modal-title">🩺 Nova Especialidade</div>
+    <form method="POST">
+      {% csrf_token %}
+      <input type="hidden" name="acao" value="especialidade">
+      <div class="form-group">
+        <label class="form-label">ÍCONE (emoji)</label>
+        <input type="text" name="icone" class="form-control" value="🩺"
+               maxlength="5" style="font-size:20px;" placeholder="Ex: 🩺 🦷 💉 🧠">
+      </div>
+      <div class="form-group">
+        <label class="form-label">NOME DA ESPECIALIDADE *</label>
+        <input type="text" name="nome_esp" class="form-control"
+               placeholder="Ex: Ultrassom, Psicólogo, Fisioterapia..." required>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" style="flex:1;" onclick="fecharModal()">Cancelar</button>
+        <button type="submit" class="btn btn-primary" style="flex:2;">✅ Cadastrar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+window.addEventListener('DOMContentLoaded', function() {
+  const primeiro = document.querySelector('.esp-btn');
+  if (primeiro) document.getElementById('esp-input').value = primeiro.dataset.val;
+});
+
+function selecionarEsp(el) {
+  document.querySelectorAll('.esp-btn').forEach(btn => btn.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('esp-input').value = el.dataset.val;
+}
+
+function abrirModal() { document.getElementById('modalEsp').classList.add('open'); }
+function fecharModal() { document.getElementById('modalEsp').classList.remove('open'); }
+
+// Fecha modal clicando fora
+document.getElementById('modalEsp').addEventListener('click', function(e) {
+  if (e.target === this) fecharModal();
+});
+
+// Fecha com ESC
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') fecharModal();
+});
+
+{% if modal_aberto %}
+// Reabre modal se houve erro de validação
+abrirModal();
+{% endif %}
+</script>
+
+{% endblock %}

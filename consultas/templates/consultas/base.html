@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% if empresa %}{{ empresa }}{% else %}Sem Espera{% endif %}</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1a2a4a; min-height: 100vh; }
+
+    :root { --cor: {{ empresa.cor_principal|default:"#1a3a8f" }}; }
+
+    .header { background: #fff; border-bottom: 2px solid #e0e8f4; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; height: 70px; }
+    .header-logo { display: flex; align-items: center; gap: 12px; }
+    .logo-icon { width: 42px; height: 42px; background: var(--cor); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 20px; font-weight: 900; overflow: hidden; }
+    .logo-icon img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+    .logo-text { font-size: 13px; font-weight: 700; color: var(--cor); line-height: 1.3; }
+    .logo-sub { font-size: 11px; color: #666; font-weight: 400; }
+    .header-title { text-align: center; }
+    .header-title h1 { font-size: 26px; font-weight: 900; color: var(--cor); letter-spacing: 2px; }
+    .header-title p { font-size: 11px; color: #888; letter-spacing: 3px; text-transform: uppercase; }
+    .header-clock { display: flex; align-items: center; gap: 16px; font-size: 13px; color: #444; }
+    .clock-block { display: flex; align-items: center; gap: 6px; }
+    .clock-icon { font-size: 18px; color: var(--cor); }
+    .header-clock strong { font-size: 16px; color: var(--cor); }
+    .divider-v { width: 1px; height: 36px; background: #dde4f0; }
+
+    /* ── MENU SUSPENSO DO USUÁRIO ── */
+    .user-menu { position: relative; }
+    .user-menu-toggle {
+      display: flex; flex-direction: column; align-items: flex-end; gap: 3px;
+      cursor: pointer; padding: 6px 8px; border-radius: 8px; transition: background .2s;
+      user-select: none;
+    }
+    .user-menu-toggle:hover { background: #f0f4ff; }
+    .user-menu-toggle .u-name { font-size: 12px; font-weight: 700; color: #1a2a4a; }
+    .user-menu-toggle .u-arrow { font-size: 9px; color: #888; }
+    .user-dropdown {
+      display: none; position: absolute; right: 0; top: calc(100% + 8px);
+      background: #fff; border: 1.5px solid #dde4f0; border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.12); min-width: 200px; z-index: 999;
+      overflow: hidden;
+    }
+    .user-menu.open .user-dropdown { display: block; }
+    .user-dropdown-header {
+      padding: 14px 16px; background: #f8faff;
+      border-bottom: 1px solid #eef2fb;
+    }
+    .user-dropdown-header .ud-name { font-weight: 800; font-size: 13px; color: #1a2a4a; }
+    .user-dropdown-header .ud-empresa { font-size: 11px; color: #888; margin-top: 2px; }
+    .user-dropdown a {
+      display: flex; align-items: center; gap: 10px;
+      padding: 11px 16px; text-decoration: none;
+      font-size: 13px; font-weight: 600; color: #444;
+      transition: background .15s;
+    }
+    .user-dropdown a:hover { background: #f5f8ff; color: var(--cor); }
+    .user-dropdown .ud-sep { height: 1px; background: #eef2fb; margin: 4px 0; }
+    .user-dropdown .ud-sair { color: #dc2626 !important; }
+    .user-dropdown .ud-sair:hover { background: #fff5f5 !important; }
+    .user-dropdown .ud-master {
+      background: linear-gradient(135deg,#f0f0ff,#e8e0ff);
+      color: #6366f1 !important; font-weight: 800;
+    }
+    .user-dropdown .ud-master:hover { opacity: .88; }
+
+    /* ── TABS ── */
+    .tabs { display: flex; background: #fff; border-bottom: 2px solid #e0e8f4; }
+    .tab { flex: 1; display: flex; align-items: center; gap: 12px; padding: 16px 32px; text-decoration: none; color: #555; border-bottom: 3px solid transparent; transition: all .2s; }
+    .tab:hover { background: #f5f8ff; color: var(--cor); }
+    .tab.active { background: var(--cor); color: #fff; border-bottom-color: var(--cor); }
+    .tab .tab-icon { font-size: 22px; }
+    .tab .tab-label { font-weight: 700; font-size: 13px; letter-spacing: .5px; }
+    .tab .tab-sub { font-size: 11px; opacity: .75; }
+
+    .content { padding: 28px 32px; max-width: 1400px; margin: 0 auto; }
+    .card { background: #fff; border-radius: 12px; border: 1px solid #dde4f0; padding: 24px; margin-bottom: 20px; }
+    .card-title { font-size: 13px; font-weight: 800; color: var(--cor); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 18px; padding-bottom: 10px; border-bottom: 2px solid #e8eef8; display: flex; align-items: center; gap: 8px; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 22px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; border: none; text-decoration: none; transition: all .2s; letter-spacing: .3px; }
+    .btn-primary { background: var(--cor); color: #fff; }
+    .btn-primary:hover { opacity: .88; }
+    .btn-success { background: #16a34a; color: #fff; }
+    .btn-success:hover { background: #15803d; }
+    .btn-warning { background: #d97706; color: #fff; }
+    .btn-warning:hover { background: #b45309; }
+    .btn-danger { background: #dc2626; color: #fff; }
+    .btn-danger:hover { background: #b91c1c; }
+    .btn-outline { background: transparent; color: var(--cor); border: 2px solid var(--cor); }
+    .btn-outline:hover { background: #f0f4ff; }
+    .btn-full { width: 100%; justify-content: center; font-size: 16px; padding: 16px; }
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 12px; font-weight: 700; color: #555; margin-bottom: 6px; letter-spacing: .5px; }
+    .form-control { width: 100%; padding: 11px 14px; border: 1.5px solid #d0daf0; border-radius: 8px; font-size: 14px; color: #1a2a4a; background: #fff; transition: border .2s; outline: none; }
+    .form-control:focus { border-color: var(--cor); }
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: .3px; }
+    .badge-green { background: #dcfce7; color: #166534; }
+    .badge-yellow { background: #fef9c3; color: #854d0e; }
+    .badge-red { background: #fee2e2; color: #991b1b; }
+    .badge-gray { background: #f1f5f9; color: #475569; }
+    .badge-blue { background: #dbeafe; color: #1e40af; }
+    .summary-item { flex: 1; min-width: 120px; background: #fff; border: 1px solid #dde4f0; border-radius: 10px; padding: 14px 18px; text-align: center; }
+    .summary-item .s-val { font-size: 28px; font-weight: 900; color: var(--cor); }
+    .summary-item .s-label { font-size: 11px; color: #888; font-weight: 600; margin-top: 2px; }
+
+    @media (max-width: 700px) {
+      .header { padding: 0 16px; }
+      .content { padding: 16px; }
+      .tab { padding: 14px 16px; }
+      .header-title h1 { font-size: 18px; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-logo">
+    <div class="logo-icon">
+      {% if empresa and empresa.logo %}
+        <img src="{{ empresa.logo.url }}" alt="{{ empresa }}">
+      {% else %}+{% endif %}
+    </div>
+    <div>
+      {% if empresa %}
+        <div class="logo-text">{{ empresa.nome_fantasia|default:empresa.nome|upper }}</div>
+      {% else %}
+        <div class="logo-text">UNIDADE</div>
+        <div class="logo-text">BOA ESPERANÇA</div>
+      {% endif %}
+      <div class="logo-sub">Sem Espera</div>
+    </div>
+  </div>
+
+  <div class="header-title">
+    <h1>SEM ESPERA</h1>
+    <p>Sistema de Gerenciamento de Atendimentos</p>
+  </div>
+
+  <div class="header-clock">
+    <div class="clock-block">
+      <span class="clock-icon">📅</span>
+      <div id="clock-date" style="font-weight:700;font-size:14px;"></div>
+    </div>
+    <div class="divider-v"></div>
+    <div class="clock-block">
+      <span class="clock-icon">🕐</span>
+      <strong id="clock-time"></strong>
+    </div>
+
+    {% if user.is_authenticated %}
+    <div class="divider-v"></div>
+
+    <!-- MENU SUSPENSO DO USUÁRIO -->
+    <div class="user-menu" id="userMenu">
+      <div class="user-menu-toggle" onclick="toggleMenu()">
+        <span class="u-name">👤 {{ user.username }}</span>
+        <span class="u-arrow">▼ menu</span>
+      </div>
+      <div class="user-dropdown">
+        <div class="user-dropdown-header">
+          <div class="ud-name">{{ user.username }}</div>
+          <div class="ud-empresa">{% if empresa %}{{ empresa }}{% elif user.is_superuser %}Master{% endif %}</div>
+        </div>
+        <a href="{% url 'meu_perfil' %}">👤 Meu Perfil</a>
+        <a href="{% url 'alterar_senha' %}">🔑 Alterar Senha</a>
+        {% if user.is_superuser %}
+        <div class="ud-sep"></div>
+        <a href="{% url 'master_dashboard' %}" class="ud-master">⚡ Painel Master</a>
+        {% endif %}
+        <div class="ud-sep"></div>
+        <a href="{% url 'logout' %}" class="ud-sair"
+           onclick="return confirm('Deseja sair do sistema?')">🔒 Sair</a>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</header>
+
+<!-- TABS: apenas 3 abas + Master só para superusuário -->
+<nav class="tabs">
+  <a href="{% url 'agendar_dia' %}" class="tab {% if active_tab == 'agendar' %}active{% endif %}">
+    <span class="tab-icon">📅</span>
+    <div><div class="tab-label">AGENDAR DIA</div><div class="tab-sub">Escolher especialidade e dia</div></div>
+  </a>
+  <a href="{% url 'marcar_consulta' %}" class="tab {% if active_tab == 'marcar' %}active{% endif %}">
+    <span class="tab-icon">✅</span>
+    <div><div class="tab-label">MARCAR CONSULTA</div><div class="tab-sub">Preencher dados do paciente</div></div>
+  </a>
+  <a href="{% url 'atendimento' %}" class="tab {% if active_tab == 'atendimento' %}active{% endif %}">
+    <span class="tab-icon">👥</span>
+    <div><div class="tab-label">ATENDIMENTO</div><div class="tab-sub">Gerenciar fila e atendimentos</div></div>
+  </a>
+  {% if user.is_superuser %}
+  <a href="{% url 'master_dashboard' %}" class="tab" style="background:linear-gradient(135deg,#1e293b,#0f172a);color:#a78bfa;border-left:1px solid #334155;">
+    <span class="tab-icon">⚡</span>
+    <div><div class="tab-label" style="color:#a78bfa;">PAINEL MASTER</div><div class="tab-sub" style="color:#64748b;">Administração global</div></div>
+  </a>
+  {% endif %}
+</nav>
+
+<div class="content">{% block content %}{% endblock %}</div>
+
+<footer style="text-align:center;padding:16px;font-size:11px;color:#aaa;border-top:1px solid #e8eef8;margin-top:20px;">
+  SEM ESPERA – SISTEMA DE GERENCIAMENTO DE ATENDIMENTOS<br>
+  <span style="font-size:10px;color:#ccc;">© 2025 Sem Espera – Luiz Felipe Sabino. Todos os direitos reservados.</span>
+</footer>
+
+<script>
+function atualizarRelogio() {
+  const agora = new Date();
+  const dias = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+  document.getElementById('clock-date').textContent =
+    dias[agora.getDay()].toUpperCase() + ' ' +
+    String(agora.getDate()).padStart(2,'0') + '/' +
+    String(agora.getMonth()+1).padStart(2,'0') + '/' + agora.getFullYear();
+  document.getElementById('clock-time').textContent =
+    String(agora.getHours()).padStart(2,'0') + ':' +
+    String(agora.getMinutes()).padStart(2,'0');
+}
+atualizarRelogio();
+setInterval(atualizarRelogio, 1000);
+
+// Menu suspenso
+function toggleMenu() {
+  document.getElementById('userMenu').classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+  const menu = document.getElementById('userMenu');
+  if (menu && !menu.contains(e.target)) {
+    menu.classList.remove('open');
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,89 @@
+{% extends "consultas/master/base_master.html" %}
+{% block master_content %}
+
+<div style="margin-bottom:24px;">
+  <h2 style="font-size:22px;font-weight:900;color:#f1f5f9;">📊 Dashboard</h2>
+  <p style="color:#64748b;font-size:13px;margin-top:4px;">Visão geral do sistema em tempo real</p>
+</div>
+
+<!-- Stats principais -->
+<div class="m-stats">
+  <div class="m-stat">
+    <div class="m-stat-val purple">{{ total_empresas }}</div>
+    <div class="m-stat-label">Total de Empresas</div>
+  </div>
+  <div class="m-stat">
+    <div class="m-stat-val green">{{ ativas }}</div>
+    <div class="m-stat-label">Empresas Ativas</div>
+  </div>
+  <div class="m-stat">
+    <div class="m-stat-val red">{{ inativas }}</div>
+    <div class="m-stat-label">Empresas Inativas</div>
+  </div>
+  <div class="m-stat">
+    <div class="m-stat-val blue">{{ total_usuarios }}</div>
+    <div class="m-stat-label">Usuários Cadastrados</div>
+  </div>
+  <div class="m-stat">
+    <div class="m-stat-val teal">{{ total_consultas }}</div>
+    <div class="m-stat-label">Consultas Registradas</div>
+  </div>
+  <div class="m-stat">
+    <div class="m-stat-val yellow">{{ total_pacientes }}</div>
+    <div class="m-stat-label">Pacientes Cadastrados</div>
+  </div>
+</div>
+
+<!-- Tabela de empresas -->
+<div class="m-card">
+  <div class="m-card-title">🏢 Empresas Cadastradas</div>
+  {% if empresas_resumo %}
+  <table class="m-table">
+    <thead>
+      <tr>
+        <th>Empresa</th>
+        <th>Status</th>
+        <th>Usuários</th>
+        <th>Especialidades</th>
+        <th>Consultas</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for emp in empresas_resumo %}
+      <tr>
+        <td>
+          <div style="font-weight:700;color:#f1f5f9;">{{ emp.nome_fantasia|default:emp.nome }}</div>
+          {% if emp.nome_fantasia %}<div style="font-size:11px;color:#64748b;">{{ emp.nome }}</div>{% endif %}
+        </td>
+        <td>
+          {% if emp.ativo %}
+            <span class="m-badge m-badge-green">Ativa</span>
+          {% else %}
+            <span class="m-badge m-badge-red">Inativa</span>
+          {% endif %}
+        </td>
+        <td><span style="font-weight:700;color:#60a5fa;">{{ emp.num_usuarios }}</span></td>
+        <td><span style="font-weight:700;color:#a78bfa;">{{ emp.num_especialidades }}</span></td>
+        <td><span style="font-weight:700;color:#34d399;">{{ emp.num_consultas }}</span></td>
+        <td>
+          <a href="{% url 'master_empresa_editar' emp.id %}" class="m-btn m-btn-outline" style="padding:5px 10px;font-size:11px;">✏️</a>
+          {% if emp.ativo %}
+            <a href="{% url 'master_empresa_desativar' emp.id %}" class="m-btn m-btn-warning" style="padding:5px 10px;font-size:11px;margin-left:4px;">⏸️</a>
+          {% else %}
+            <a href="{% url 'master_empresa_ativar' emp.id %}" class="m-btn m-btn-success" style="padding:5px 10px;font-size:11px;margin-left:4px;">▶️</a>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div style="text-align:center;padding:40px;color:#475569;">
+    <div style="font-size:40px;margin-bottom:12px;">🏢</div>
+    <p>Nenhuma empresa cadastrada ainda.</p>
+    <a href="{% url 'master_empresa_nova' %}" class="m-btn m-btn-primary" style="margin-top:14px;">+ Cadastrar Empresa</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

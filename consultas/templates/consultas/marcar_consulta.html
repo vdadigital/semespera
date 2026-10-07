@@ -1,0 +1,203 @@
+{% extends "consultas/base.html" %}
+{% block content %}
+<style>
+  .mc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .esp-tabs { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 0; }
+  .esp-tab { display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 12px 16px; border-radius: 10px; border: 2px solid #d0daf0; background: #fff; cursor: pointer; transition: all .2s; text-decoration: none; font-size: 12px; font-weight: 700; color: #555; }
+  .esp-tab:hover { border-color: var(--cor); color: var(--cor); }
+  .esp-tab.active { border-color: var(--cor); background: var(--cor); color: #fff; }
+  .esp-tab .esp-icon { font-size: 22px; }
+  .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .cal-header h3 { font-size: 16px; font-weight: 800; color: var(--cor); }
+  .cal-nav { background: none; border: 1.5px solid #d0daf0; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 16px; color: var(--cor); text-decoration: none; }
+  .cal-nav:hover { background: #f0f4ff; }
+  .cal-legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; font-size: 11px; color: #666; }
+  .cal-legend span { display: flex; align-items: center; gap: 4px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .cal-grid { width: 100%; border-collapse: collapse; }
+  .cal-grid th { font-size: 11px; font-weight: 700; color: #888; text-align: center; padding: 6px; }
+  .cal-grid td { text-align: center; padding: 4px; }
+  .cal-day { display: flex; flex-direction: column; align-items: center; padding: 6px 4px; border-radius: 8px; min-height: 52px; justify-content: center; }
+  .cal-day.has-vagas { cursor: pointer; }
+  .cal-day.has-vagas:hover { background: #f0f4ff; }
+  .cal-day.selected { background: var(--cor) !important; color: #fff !important; }
+  .cal-day.selected .cal-vagas { color: #fff !important; }
+  .cal-day .cal-num { font-size: 15px; font-weight: 800; }
+  .cal-day .cal-vagas { font-size: 10px; font-weight: 600; margin-top: 2px; }
+  .cal-day.sem-atend { color: #bbb; }
+  .dados-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #eef2fb; }
+  .dados-row:last-of-type { border-bottom: none; }
+  .dados-icon { font-size: 20px; width: 28px; text-align: center; color: var(--cor); flex-shrink: 0; }
+  .dados-label { font-size: 11px; color: #888; font-weight: 600; width: 110px; flex-shrink: 0; }
+  .resumo-box { background: #f0f4ff; border: 1.5px solid #c7d4f0; border-radius: 10px; padding: 16px; display: flex; gap: 12px; margin: 16px 0; justify-content: space-between; }
+  .resumo-item .r-label { font-size: 10px; color: #888; font-weight: 700; letter-spacing: .5px; }
+  .resumo-item .r-val { font-size: 15px; font-weight: 900; color: var(--cor); }
+  .r-vagas-ok { color: #16a34a !important; }
+</style>
+
+<div class="mc-grid">
+  <div>
+    <div class="card">
+      <div class="card-title">🩺 1. Escolha a Especialidade</div>
+      {% if especialidades %}
+      <div class="esp-tabs">
+        {% for esp in especialidades %}
+        <a href="?especialidade_id={{ esp.id }}&ano={{ ano }}&mes={{ mes }}"
+           class="esp-tab {% if especialidade_sel and especialidade_sel.id == esp.id %}active{% endif %}">
+          <span class="esp-icon">{{ esp.icone }}</span>
+          {{ esp.nome|upper }}
+        </a>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p style="color:#aaa;font-size:13px;">Nenhuma especialidade cadastrada. <a href="{% url 'admin_especialidades' %}">Cadastrar</a></p>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <div class="card-title">📅 2. Escolha o Dia da Consulta</div>
+      <div class="cal-header">
+        <a href="?especialidade_id={% if especialidade_sel %}{{ especialidade_sel.id }}{% endif %}&ano={{ mes_anterior.0 }}&mes={{ mes_anterior.1 }}" class="cal-nav">‹</a>
+        <h3>{{ nome_mes|upper }} / {{ ano }}</h3>
+        <a href="?especialidade_id={% if especialidade_sel %}{{ especialidade_sel.id }}{% endif %}&ano={{ mes_proximo.0 }}&mes={{ mes_proximo.1 }}" class="cal-nav">›</a>
+      </div>
+      <div class="cal-legend">
+        <span><i class="dot" style="background:#22c55e"></i> Muitas vagas</span>
+        <span><i class="dot" style="background:#eab308"></i> Poucas vagas</span>
+        <span><i class="dot" style="background:#ef4444"></i> Sem vagas</span>
+        <span><i class="dot" style="background:#cbd5e1"></i> Sem atendimento</span>
+      </div>
+      <table class="cal-grid">
+        <thead><tr><th>DOM</th><th>SEG</th><th>TER</th><th>QUA</th><th>QUI</th><th>SEX</th><th>SÁB</th></tr></thead>
+        <tbody>
+          {% for semana in cal %}
+          <tr>
+            {% for dia in semana %}
+            <td>
+              {% if dia == 0 %}
+                <div class="cal-day"></div>
+              {% else %}
+                {% if dia in agenda_por_dia %}
+                  {% with a=agenda_por_dia|dictsort:"id" %}
+                  {% for k,v in agenda_por_dia.items %}{% if k == dia %}
+                    {% if v.vagas_restantes == 0 %}
+                    <div class="cal-day" title="Sem vagas">
+                      <span class="cal-num" style="color:#ef4444;">{{ dia }}</span>
+                      <span class="cal-vagas" style="color:#ef4444;">Sem vagas</span>
+                    </div>
+                    {% elif v.vagas_restantes <= 3 %}
+                    <div class="cal-day has-vagas" data-agenda-id="{{ v.id }}" data-data="{{ v.data }}" data-vagas="{{ v.vagas_restantes }}" onclick="selecionarDia(this)">
+                      <span class="cal-num" style="color:#eab308;">{{ dia }}</span>
+                      <span class="cal-vagas" style="color:#eab308;">{{ v.vagas_restantes }} vaga{% if v.vagas_restantes != 1 %}s{% endif %}</span>
+                    </div>
+                    {% else %}
+                    <div class="cal-day has-vagas" data-agenda-id="{{ v.id }}" data-data="{{ v.data }}" data-vagas="{{ v.vagas_restantes }}" onclick="selecionarDia(this)">
+                      <span class="cal-num" style="color:#22c55e;">{{ dia }}</span>
+                      <span class="cal-vagas" style="color:#22c55e;">{{ v.vagas_restantes }} vagas</span>
+                    </div>
+                    {% endif %}
+                  {% endif %}{% endfor %}
+                  {% endwith %}
+                {% else %}
+                  <div class="cal-day sem-atend">
+                    <span class="cal-num">{{ dia }}</span>
+                    <span class="cal-vagas" style="color:#ccc;">Sem at.</span>
+                  </div>
+                {% endif %}
+              {% endif %}
+            </td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <p style="font-size:11px;color:#888;margin-top:12px;">ℹ️ Selecione um dia com vagas disponíveis para continuar.</p>
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <div class="card-title">📋 3. Dados da Consulta</div>
+      <div class="dados-row">
+        <span class="dados-icon">🩺</span>
+        <span class="dados-label">Especialidade:</span>
+        <span class="dados-val">{% if especialidade_sel %}{{ especialidade_sel.nome|upper }}{% else %}—{% endif %}</span>
+      </div>
+      <div class="dados-row">
+        <span class="dados-icon">📅</span>
+        <span class="dados-label">Dia da consulta:</span>
+        <span class="dados-val" id="info-data">—</span>
+        <span id="info-vagas-badge" style="margin-left:auto;display:none;" class="badge badge-green"></span>
+      </div>
+      <div class="dados-row">
+        <span class="dados-icon">👤</span>
+        <span class="dados-label">Nome do paciente:</span>
+        <input type="text" id="campo-nome" class="form-control" placeholder="Digite o nome do paciente" style="flex:1;">
+      </div>
+      <div class="dados-row">
+        <span class="dados-icon">📱</span>
+        <span class="dados-label">Telefone:</span>
+        <input type="text" id="campo-tel" class="form-control" placeholder="(00) 00000-0000" style="flex:1;">
+      </div>
+      <div class="dados-row">
+        <span class="dados-icon">🔖</span>
+        <span class="dados-label">Número da ficha:</span>
+        <span style="color:#aaa;font-size:13px;">Será gerado automaticamente</span>
+      </div>
+
+      <div class="resumo-box">
+        <div class="resumo-item">
+          <div class="r-label">ESPECIALIDADE</div>
+          <div class="r-val">{% if especialidade_sel %}{{ especialidade_sel.nome|upper }}{% else %}—{% endif %}</div>
+        </div>
+        <div class="resumo-item">
+          <div class="r-label">DIA DA CONSULTA</div>
+          <div class="r-val" id="resumo-data">—</div>
+        </div>
+        <div class="resumo-item">
+          <div class="r-label">VAGAS RESTANTES</div>
+          <div class="r-val r-vagas-ok" id="resumo-vagas">—</div>
+        </div>
+      </div>
+
+      <form method="POST" action="{% url 'marcar_consulta' %}" id="form-marcar">
+        {% csrf_token %}
+        <input type="hidden" name="agenda_id" id="agenda-id-input">
+        <input type="hidden" name="nome" id="nome-hidden">
+        <input type="hidden" name="telefone" id="tel-hidden">
+        <button type="button" class="btn btn-primary btn-full" onclick="confirmarMarcacao()">
+          ✅ MARCAR CONSULTA
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+let agendaSelecionada = null;
+function selecionarDia(el) {
+  document.querySelectorAll('.cal-day').forEach(d => d.classList.remove('selected'));
+  el.classList.add('selected');
+  agendaSelecionada = { id: el.dataset.agendaId, data: el.dataset.data, vagas: el.dataset.vagas };
+  const [a,m,d] = agendaSelecionada.data.split('-');
+  const fmt = d+'/'+m+'/'+a;
+  document.getElementById('info-data').textContent = fmt;
+  document.getElementById('resumo-data').textContent = fmt;
+  document.getElementById('resumo-vagas').textContent = agendaSelecionada.vagas;
+  const badge = document.getElementById('info-vagas-badge');
+  badge.textContent = agendaSelecionada.vagas + ' vagas disponíveis';
+  badge.style.display = 'inline-block';
+  document.getElementById('agenda-id-input').value = agendaSelecionada.id;
+}
+function confirmarMarcacao() {
+  const nome = document.getElementById('campo-nome').value.trim();
+  const tel = document.getElementById('campo-tel').value.trim();
+  if (!agendaSelecionada) { alert('Selecione um dia no calendário.'); return; }
+  if (!nome) { alert('Informe o nome do paciente.'); return; }
+  if (!tel) { alert('Informe o telefone do paciente.'); return; }
+  document.getElementById('nome-hidden').value = nome;
+  document.getElementById('tel-hidden').value = tel;
+  document.getElementById('form-marcar').submit();
+}
+</script>
+{% endblock %}

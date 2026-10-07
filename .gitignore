@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+db.sqlite3
+.env
+stderr.log
+espiao.txt
+LEIA_ME.txt

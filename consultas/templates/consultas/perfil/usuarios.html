@@ -1,0 +1,35 @@
+{% extends "consultas/base.html" %}
+{% block content %}
+<div class="card">
+  <div class="card-title">👥 Usuários da Empresa</div>
+  {% if perfis %}
+  <table style="width:100%;border-collapse:collapse;">
+    <thead>
+      <tr style="background:#f8faff;">
+        <th style="padding:10px 14px;text-align:left;font-size:11px;color:#888;font-weight:800;letter-spacing:1px;">USUÁRIO</th>
+        <th style="padding:10px 14px;text-align:left;font-size:11px;color:#888;font-weight:800;">STATUS</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for perfil in perfis %}
+      <tr style="border-bottom:1px solid #eef2fb;">
+        <td style="padding:12px 14px;font-weight:700;">{{ perfil.usuario.username }}</td>
+        <td style="padding:12px 14px;">
+          {% if perfil.usuario.is_active %}
+            <span class="badge badge-green">Ativo</span>
+          {% else %}
+            <span class="badge badge-red">Bloqueado</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div style="text-align:center;padding:40px;color:#aaa;">
+    <div style="font-size:40px;margin-bottom:12px;">👥</div>
+    <p>Nenhum usuário cadastrado ainda.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

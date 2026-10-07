@@ -1,0 +1,55 @@
+{% extends "consultas/base.html" %}
+{% block content %}
+<div style="max-width:600px;margin:0 auto;">
+  <a href="{% url 'admin_empresas' %}" style="font-size:12px;color:#1a3a8f;text-decoration:none;">← Voltar</a>
+  <h2 style="font-size:20px;font-weight:900;color:#1a3a8f;margin:12px 0 20px;">
+    {% if empresa %}✏️ Editar Empresa{% else %}🏢 Nova Empresa{% endif %}
+  </h2>
+  <div class="card">
+    <form method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label">NOME OFICIAL *</label>
+        <input type="text" name="nome" class="form-control" value="{{ empresa.nome|default:'' }}" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">NOME FANTASIA</label>
+        <input type="text" name="nome_fantasia" class="form-control" value="{{ empresa.nome_fantasia|default:'' }}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">TELEFONE</label>
+        <input type="text" name="telefone" class="form-control" value="{{ empresa.telefone|default:'' }}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">ENDEREÇO</label>
+        <input type="text" name="endereco" class="form-control" value="{{ empresa.endereco|default:'' }}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">COR PRINCIPAL DO SISTEMA</label>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <input type="color" name="cor_principal" value="{{ empresa.cor_principal|default:'#1a3a8f' }}"
+                 style="width:50px;height:40px;border:none;cursor:pointer;border-radius:6px;">
+          <span style="font-size:13px;color:#888;">Essa cor será aplicada no header e botões da empresa</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">LOGO (opcional)</label>
+        <input type="file" name="logo" class="form-control" accept="image/*">
+        {% if empresa and empresa.logo %}
+          <div style="margin-top:8px;">
+            <img src="{{ empresa.logo.url }}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid #ddd;">
+            <span style="font-size:11px;color:#888;margin-left:8px;">Logo atual</span>
+          </div>
+        {% endif %}
+      </div>
+      <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+        <input type="checkbox" name="ativo" id="ativo" {% if not empresa or empresa.ativo %}checked{% endif %}>
+        <label for="ativo" style="font-size:13px;font-weight:600;cursor:pointer;">Empresa ativa</label>
+      </div>
+      <button type="submit" class="btn btn-primary btn-full" style="margin-top:8px;">
+        💾 SALVAR EMPRESA
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

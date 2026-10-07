@@ -1,0 +1,73 @@
+{% extends "consultas/base.html" %}
+{% block content %}
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+  <!-- Formulário -->
+  <div>
+    <div class="card">
+      <div class="card-title">➕ Novo Usuário</div>
+      {% if erro %}<div style="background:#fee2e2;border-radius:8px;padding:12px;color:#dc2626;font-weight:600;margin-bottom:16px;font-size:13px;">❌ {{ erro }}</div>{% endif %}
+      <form method="POST">
+        {% csrf_token %}
+        {% if is_admin %}
+        <div class="form-group">
+          <label class="form-label">EMPRESA</label>
+          <select name="empresa_id" class="form-control" required>
+            {% for emp in empresas %}
+            <option value="{{ emp.id }}">{{ emp.nome_fantasia|default:emp.nome }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% endif %}
+        <div class="form-group">
+          <label class="form-label">NOME DE USUÁRIO *</label>
+          <input type="text" name="username" class="form-control" placeholder="Ex: atendente01" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">SENHA *</label>
+          <input type="password" name="senha" class="form-control" placeholder="Mínimo 8 caracteres" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">➕ CRIAR USUÁRIO</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Lista -->
+  <div>
+    <div class="card">
+      <div class="card-title">👥 Usuários Cadastrados</div>
+      {% if perfis %}
+        {% regroup perfis by empresa as por_empresa %}
+        {% for grupo in por_empresa %}
+          {% if is_admin %}
+          <div style="font-size:11px;font-weight:800;color:#888;letter-spacing:1px;margin:12px 0 8px;padding-bottom:4px;border-bottom:1px solid #eef2fb;">
+            🏢 {{ grupo.grouper }}
+          </div>
+          {% endif %}
+          {% for perfil in grupo.list %}
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f0f4f8;">
+            <div style="width:36px;height:36px;border-radius:50%;background:#1a3a8f;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;">
+              {{ perfil.usuario.username|slice:":1"|upper }}
+            </div>
+            <div style="flex:1;">
+              <div style="font-weight:700;font-size:14px;">{{ perfil.usuario.username }}</div>
+              {% if perfil.usuario.is_superuser %}<span class="badge badge-blue">Superuser</span>{% endif %}
+            </div>
+            {% if not perfil.usuario.is_superuser %}
+            <a href="{% url 'admin_excluir_usuario' perfil.id %}"
+               onclick="return confirm('Excluir usuário {{ perfil.usuario.username }}?')"
+               class="btn btn-danger" style="padding:5px 10px;font-size:12px;">🗑️</a>
+            {% endif %}
+          </div>
+          {% endfor %}
+        {% endfor %}
+      {% else %}
+        <div style="text-align:center;padding:32px;color:#aaa;">Nenhum usuário ainda.</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:4px;">
+  <a href="{% url 'admin_especialidades' %}" class="btn btn-outline">🩺 Gerenciar Especialidades</a>
+</div>
+{% endblock %}

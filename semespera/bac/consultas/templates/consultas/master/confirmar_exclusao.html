@@ -1,0 +1,17 @@
+{% extends "consultas/master/base_master.html" %}
+{% block master_content %}
+<div style="max-width:480px;margin:40px auto;">
+  <div class="m-card" style="text-align:center;padding:40px;">
+    <div style="font-size:56px;margin-bottom:16px;">⚠️</div>
+    <h2 style="font-size:20px;font-weight:900;color:#f87171;margin-bottom:12px;">Confirmar Exclusão</h2>
+    <p style="color:#94a3b8;font-size:14px;margin-bottom:8px;">Você está prestes a excluir o {{ tipo }}:</p>
+    <p style="font-weight:800;color:#f1f5f9;font-size:18px;margin-bottom:24px;">{{ objeto }}</p>
+    <p style="color:#64748b;font-size:12px;margin-bottom:28px;">Esta ação não pode ser desfeita. Todos os dados relacionados serão removidos.</p>
+    <form method="POST" style="display:flex;gap:12px;justify-content:center;">
+      {% csrf_token %}
+      <a href="{% url voltar_url %}" class="m-btn m-btn-gray">Cancelar</a>
+      <button type="submit" class="m-btn m-btn-danger">🗑️ Confirmar Exclusão</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

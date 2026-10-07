@@ -1,0 +1,52 @@
+{% extends "consultas/master/base_master.html" %}
+{% block master_content %}
+<div style="margin-bottom:24px;">
+  <h2 style="font-size:22px;font-weight:900;color:#f1f5f9;">🩺 Especialidades</h2>
+  <p style="color:#64748b;font-size:13px;margin-top:4px;">Visão geral das especialidades por empresa</p>
+</div>
+
+<!-- Resumo por empresa -->
+<div class="m-stats" style="margin-bottom:24px;">
+  {% for emp in empresas %}
+  <div class="m-stat">
+    <div class="m-stat-val purple">{{ emp.num_especialidades }}</div>
+    <div class="m-stat-label">{{ emp.nome_fantasia|default:emp.nome }}</div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Lista completa -->
+<div class="m-card">
+  <div class="m-card-title">📋 Todas as Especialidades</div>
+  {% if especialidades %}
+  <table class="m-table">
+    <thead>
+      <tr>
+        <th>Ícone</th>
+        <th>Especialidade</th>
+        <th>Empresa</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for esp in especialidades %}
+      <tr>
+        <td style="font-size:22px;">{{ esp.icone }}</td>
+        <td style="font-weight:700;color:#f1f5f9;">{{ esp.nome }}</td>
+        <td style="color:#94a3b8;">{{ esp.empresa }}</td>
+        <td>
+          {% if esp.ativo %}
+            <span class="m-badge m-badge-green">Ativa</span>
+          {% else %}
+            <span class="m-badge m-badge-red">Inativa</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div style="text-align:center;padding:40px;color:#475569;">Nenhuma especialidade cadastrada.</div>
+  {% endif %}
+</div>
+{% endblock %}

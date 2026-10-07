@@ -1,0 +1,7 @@
+Django>=4.2
+psycopg2-binary
+Pillow
+djangorestframework
+django-cors-headers
+PyMySQL
+whitenoise

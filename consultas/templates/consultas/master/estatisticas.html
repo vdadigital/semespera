@@ -1,0 +1,65 @@
+{% extends "consultas/master/base_master.html" %}
+{% block master_content %}
+<div style="margin-bottom:24px;">
+  <h2 style="font-size:22px;font-weight:900;color:#f1f5f9;">📈 Estatísticas</h2>
+  <p style="color:#64748b;font-size:13px;margin-top:4px;">Dados consolidados de todo o sistema</p>
+</div>
+
+<div class="m-stats">
+  <div class="m-stat"><div class="m-stat-val purple">{{ total_empresas }}</div><div class="m-stat-label">Total Empresas</div></div>
+  <div class="m-stat"><div class="m-stat-val green">{{ ativas }}</div><div class="m-stat-label">Ativas</div></div>
+  <div class="m-stat"><div class="m-stat-val red">{{ inativas }}</div><div class="m-stat-label">Inativas</div></div>
+  <div class="m-stat"><div class="m-stat-val blue">{{ total_usuarios }}</div><div class="m-stat-label">Usuários</div></div>
+  <div class="m-stat"><div class="m-stat-val teal">{{ total_consultas }}</div><div class="m-stat-label">Consultas</div></div>
+  <div class="m-stat"><div class="m-stat-val yellow">{{ total_pacientes }}</div><div class="m-stat-label">Pacientes</div></div>
+</div>
+
+<!-- Status das consultas -->
+<div class="m-grid2">
+  <div class="m-card">
+    <div class="m-card-title">📋 Consultas por Status</div>
+    {% for status, total in total_consultas_status.items %}
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #334155;">
+      <span style="font-size:13px;color:#94a3b8;text-transform:capitalize;">
+        {% if status == 'esperando' %}⏳ Esperando
+        {% elif status == 'em_atendimento' %}🔵 Em Atendimento
+        {% elif status == 'atendido' %}✅ Atendido
+        {% elif status == 'ausente' %}⚠️ Ausente
+        {% elif status == 'faltou' %}❌ Faltou
+        {% endif %}
+      </span>
+      <span style="font-weight:900;font-size:16px;
+        {% if status == 'atendido' %}color:#34d399;
+        {% elif status == 'faltou' %}color:#f87171;
+        {% elif status == 'em_atendimento' %}color:#60a5fa;
+        {% elif status == 'ausente' %}color:#fbbf24;
+        {% else %}color:#94a3b8;{% endif %}">
+        {{ total }}
+      </span>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Por empresa -->
+  <div class="m-card">
+    <div class="m-card-title">🏢 Desempenho por Empresa</div>
+    {% for emp in empresas_stats %}
+    <div style="padding:12px 0;border-bottom:1px solid #334155;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <span style="font-weight:700;color:#f1f5f9;font-size:13px;">{{ emp.nome_fantasia|default:emp.nome }}</span>
+        {% if emp.ativo %}<span class="m-badge m-badge-green">Ativa</span>
+        {% else %}<span class="m-badge m-badge-red">Inativa</span>{% endif %}
+      </div>
+      <div style="display:flex;gap:16px;font-size:11px;color:#64748b;">
+        <span>👥 <strong style="color:#60a5fa;">{{ emp.num_usuarios }}</strong> usuários</span>
+        <span>🩺 <strong style="color:#a78bfa;">{{ emp.num_especialidades }}</strong> especialidades</span>
+        <span>👤 <strong style="color:#fbbf24;">{{ emp.num_pacientes }}</strong> pacientes</span>
+        <span>📋 <strong style="color:#34d399;">{{ emp.num_consultas }}</strong> consultas</span>
+      </div>
+    </div>
+    {% empty %}
+    <div style="text-align:center;padding:32px;color:#475569;">Nenhuma empresa ainda.</div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

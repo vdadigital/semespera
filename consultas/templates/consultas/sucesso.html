@@ -1,0 +1,40 @@
+{% extends "consultas/base.html" %}
+{% block content %}
+<div style="max-width:500px;margin:40px auto;text-align:center;">
+  <div class="card" style="padding:40px;">
+    <div style="font-size:64px;margin-bottom:16px;">✅</div>
+    <h2 style="color:#1a3a8f;font-size:22px;margin-bottom:8px;">Consulta Marcada!</h2>
+    <p style="color:#555;margin-bottom:28px;">Paciente cadastrado com sucesso na fila.</p>
+
+    <div style="background:#f0f4ff;border-radius:12px;padding:24px;margin-bottom:24px;">
+      <div style="font-size:13px;color:#888;font-weight:700;letter-spacing:1px;margin-bottom:4px;">NÚMERO DA FICHA</div>
+      <div style="font-size:64px;font-weight:900;color:#1a3a8f;line-height:1;">{{ ficha }}</div>
+      <div style="font-size:13px;color:#555;margin-top:8px;">{{ consulta.paciente.nome }}</div>
+    </div>
+
+    <div style="text-align:left;margin-bottom:24px;">
+      <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eef2fb;font-size:14px;">
+        <span style="color:#888;font-weight:600;">Especialidade</span>
+        <span style="font-weight:700;">{{ agenda.get_especialidade_display }}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eef2fb;font-size:14px;">
+        <span style="color:#888;font-weight:600;">Data</span>
+        <span style="font-weight:700;">{{ agenda.data|date:"d/m/Y" }}</span>
+      </div>
+      {% if agenda.horario_inicio %}
+      <div style="display:flex;justify-content:space-between;padding:10px 0;font-size:14px;">
+        <span style="color:#888;font-weight:600;">Horário de início</span>
+        <span style="font-weight:700;">{{ agenda.horario_inicio|time:"H:i" }}</span>
+      </div>
+      {% endif %}
+    </div>
+
+    <a href="{% url 'marcar_consulta' %}" class="btn btn-primary btn-full">
+      ➕ Marcar Outro Paciente
+    </a>
+    <a href="{% url 'atendimento' %}" class="btn btn-outline btn-full" style="margin-top:10px;">
+      👥 Ver Atendimento
+    </a>
+  </div>
+</div>
+{% endblock %}

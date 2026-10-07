@@ -1,0 +1,32 @@
+{% extends "consultas/master/base_master.html" %}
+{% block master_content %}
+<div style="margin-bottom:20px;">
+  <a href="{% url 'master_usuarios' %}" style="font-size:12px;color:#64748b;text-decoration:none;">← Voltar para Usuários</a>
+  <h2 style="font-size:22px;font-weight:900;color:#f1f5f9;margin-top:8px;">🔑 Redefinir Senha</h2>
+</div>
+<div style="max-width:440px;">
+  <div class="m-card">
+    <div style="margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid #334155;">
+      <div style="font-weight:800;color:#f1f5f9;font-size:15px;">{{ perfil.usuario.username }}</div>
+      <div style="font-size:12px;color:#64748b;">{{ perfil.empresa }}</div>
+    </div>
+    {% if messages %}
+      {% for msg in messages %}
+        <div class="m-alert {% if msg.tags == 'error' %}m-alert-error{% else %}m-alert-success{% endif %}">{{ msg }}</div>
+      {% endfor %}
+    {% endif %}
+    <form method="POST">
+      {% csrf_token %}
+      <div class="m-form-group">
+        <label class="m-form-label">Nova Senha *</label>
+        <input type="password" name="nova_senha" class="m-form-control" placeholder="Mínimo 6 caracteres" required>
+      </div>
+      <div class="m-form-group">
+        <label class="m-form-label">Confirmar Senha *</label>
+        <input type="password" name="confirmar" class="m-form-control" placeholder="Repita a senha" required>
+      </div>
+      <button type="submit" class="m-btn m-btn-primary m-btn-full">🔑 REDEFINIR SENHA</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

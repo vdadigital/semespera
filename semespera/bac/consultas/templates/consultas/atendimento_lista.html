@@ -1,0 +1,38 @@
+{% extends "consultas/base.html" %}
+{% block content %}
+<div class="card">
+  <div class="card-title">👥 Selecione a Agenda para Gerenciar</div>
+  {% if agendas %}
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;">
+    {% for ag in agendas %}
+    <a href="{% url 'fila_atendimento' ag.id %}" style="text-decoration:none;">
+      <div style="border:2px solid #d0daf0;border-radius:12px;padding:20px;transition:all .2s;background:#fff;"
+           onmouseover="this.style.borderColor='#1a3a8f';this.style.background='#f0f4ff'"
+           onmouseout="this.style.borderColor='#d0daf0';this.style.background='#fff'">
+        <div style="font-size:32px;margin-bottom:8px;">{% if ag.especialidade == 'medico' %}🩺{% else %}🦷{% endif %}</div>
+        <div style="font-weight:800;font-size:15px;color:#1a3a8f;">{{ ag.get_especialidade_display|upper }}</div>
+        <div style="font-size:13px;color:#666;margin-top:4px;">{{ ag.data|date:"d/m/Y" }}</div>
+        <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center;">
+          {% if ag.vagas_restantes > 3 %}
+            <span class="badge badge-green">{{ ag.vagas_restantes }} vagas restantes</span>
+          {% elif ag.vagas_restantes > 0 %}
+            <span class="badge badge-yellow">{{ ag.vagas_restantes }} vagas restantes</span>
+          {% else %}
+            <span class="badge badge-red">Sem vagas</span>
+          {% endif %}
+          {% if ag.horario_inicio %}
+          <span style="font-size:11px;color:#888;">🕐 {{ ag.horario_inicio|time:"H:i" }}</span>
+          {% endif %}
+        </div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div style="text-align:center;padding:60px;color:#aaa;">
+    <div style="font-size:48px;margin-bottom:12px;">📅</div>
+    <p>Nenhuma agenda disponível. <a href="{% url 'agendar_dia' %}">Criar agenda</a></p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

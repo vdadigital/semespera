@@ -1,0 +1,88 @@
+{% extends "consultas/base.html" %}
+{% block content %}
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; max-width:900px;">
+
+  <!-- Dados do usuário -->
+  <div class="card">
+    <div class="card-title">👤 Meu Usuário</div>
+    <div style="padding:8px 0; border-bottom:1px solid #eef2fb; margin-bottom:12px;">
+      <div style="font-size:13px; color:#888;">Usuário logado</div>
+      <div style="font-weight:800; font-size:16px; color:#1a2a4a;">{{ user.username }}</div>
+    </div>
+    {% if empresa %}
+    <div style="padding:8px 0;">
+      <div style="font-size:13px; color:#888;">Empresa vinculada</div>
+      <div style="font-weight:700; font-size:14px;">{{ empresa }}</div>
+    </div>
+    {% endif %}
+    <div style="margin-top:16px;">
+      <a href="{% url 'alterar_senha' %}" class="btn btn-outline" style="font-size:13px; padding:9px 18px;">
+        🔑 Alterar Senha
+      </a>
+    </div>
+  </div>
+
+  <!-- Dados da empresa -->
+  {% if empresa %}
+  <div class="card">
+    <div class="card-title">🏥 Dados da Unidade</div>
+
+    {% if sucesso %}
+    <div style="background:#dcfce7; border:1px solid #86efac; border-radius:8px; padding:12px; color:#166534; font-weight:700; margin-bottom:16px;">
+      ✅ Dados atualizados com sucesso!
+    </div>
+    {% endif %}
+    {% if erro %}
+    <div style="background:#fee2e2; border:1px solid #fca5a5; border-radius:8px; padding:12px; color:#dc2626; font-weight:700; margin-bottom:16px;">
+      ❌ {{ erro }}
+    </div>
+    {% endif %}
+
+    <form method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label">NOME OFICIAL *</label>
+        <input type="text" name="nome" class="form-control"
+               value="{{ empresa.nome }}" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">NOME FANTASIA</label>
+        <input type="text" name="nome_fantasia" class="form-control"
+               value="{{ empresa.nome_fantasia|default:'' }}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">TELEFONE</label>
+        <input type="text" name="telefone" class="form-control"
+               value="{{ empresa.telefone|default:'' }}" placeholder="(00) 00000-0000">
+      </div>
+      <div class="form-group">
+        <label class="form-label">ENDEREÇO</label>
+        <input type="text" name="endereco" class="form-control"
+               value="{{ empresa.endereco|default:'' }}" placeholder="Rua, número, cidade">
+      </div>
+      <div class="form-group">
+        <label class="form-label">LOGO (opcional)</label>
+        <input type="file" name="logo" class="form-control" accept="image/*">
+        {% if empresa.logo %}
+        <div style="margin-top:8px; display:flex; align-items:center; gap:8px;">
+          <img src="{{ empresa.logo.url }}"
+               style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:2px solid #dde4f0;">
+          <span style="font-size:11px; color:#888;">Logo atual</span>
+        </div>
+        {% endif %}
+      </div>
+      <button type="submit" class="btn btn-primary btn-full">💾 SALVAR ALTERAÇÕES</button>
+    </form>
+  </div>
+  {% else %}
+  <div class="card">
+    <div class="card-title">🏥 Dados da Unidade</div>
+    <div style="text-align:center; padding:32px; color:#aaa;">
+      <p>Nenhuma empresa vinculada a este usuário.</p>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

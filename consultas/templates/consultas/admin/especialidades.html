@@ -1,0 +1,78 @@
+{% extends "consultas/base.html" %}
+{% block content %}
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+  <!-- Formulário -->
+  <div>
+    <div class="card">
+      <div class="card-title">➕ Nova Especialidade</div>
+      <form method="POST">
+        {% csrf_token %}
+        {% if is_admin %}
+        <div class="form-group">
+          <label class="form-label">EMPRESA</label>
+          <select name="empresa_id" class="form-control" required>
+            {% for emp in empresas %}
+            <option value="{{ emp.id }}">{{ emp.nome_fantasia|default:emp.nome }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% endif %}
+        <div class="form-group">
+          <label class="form-label">ÍCONE (emoji)</label>
+          <input type="text" name="icone" class="form-control" value="🩺" maxlength="5"
+                 style="font-size:20px;" placeholder="Ex: 🩺 🦷 💉">
+        </div>
+        <div class="form-group">
+          <label class="form-label">NOME DA ESPECIALIDADE *</label>
+          <input type="text" name="nome" class="form-control" placeholder="Ex: Médico, Dentista, Pediatra..." required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">➕ ADICIONAR</button>
+      </form>
+    </div>
+
+    <div class="card" style="background:#f0f9f4;border-color:#86efac;">
+      <div class="card-title" style="color:#166534;">💡 Dica</div>
+      <p style="font-size:13px;color:#555;line-height:1.6;">
+        Cada empresa pode ter especialidades totalmente personalizadas.<br><br>
+        Use emojis para facilitar a identificação visual: 🩺 🦷 💉 🧠 👁️ 🦴 ❤️
+      </p>
+    </div>
+  </div>
+
+  <!-- Lista -->
+  <div>
+    <div class="card">
+      <div class="card-title">📋 Especialidades Cadastradas</div>
+      {% if especialidades %}
+        {% regroup especialidades by empresa as por_empresa %}
+        {% for grupo in por_empresa %}
+          {% if is_admin %}
+          <div style="font-size:11px;font-weight:800;color:#888;letter-spacing:1px;margin:12px 0 8px;padding-bottom:4px;border-bottom:1px solid #eef2fb;">
+            🏢 {{ grupo.grouper }}
+          </div>
+          {% endif %}
+          {% for esp in grupo.list %}
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f0f4f8;">
+            <span style="font-size:22px;">{{ esp.icone }}</span>
+            <span style="flex:1;font-weight:600;font-size:14px;">{{ esp.nome }}</span>
+            <a href="{% url 'admin_excluir_especialidade' esp.id %}"
+               onclick="return confirm('Excluir {{ esp.nome }}?')"
+               class="btn btn-danger" style="padding:5px 10px;font-size:12px;">🗑️</a>
+          </div>
+          {% endfor %}
+        {% endfor %}
+      {% else %}
+        <div style="text-align:center;padding:32px;color:#aaa;">Nenhuma especialidade ainda.</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Links para outras telas admin -->
+<div style="display:flex;gap:12px;margin-top:4px;">
+  <a href="{% url 'admin_usuarios' %}" class="btn btn-outline">👤 Gerenciar Usuários</a>
+  {% if user.is_superuser %}
+  <a href="{% url 'admin_empresas' %}" class="btn btn-outline">🏢 Gerenciar Empresas</a>
+  {% endif %}
+</div>
+{% endblock %}

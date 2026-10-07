@@ -1,0 +1,66 @@
+{% extends "consultas/master/base_master.html" %}
+{% block master_content %}
+
+<div style="margin-bottom:20px;">
+  <a href="{% url 'master_empresas' %}" style="font-size:12px;color:#64748b;text-decoration:none;">← Voltar para Empresas</a>
+  <h2 style="font-size:22px;font-weight:900;color:#f1f5f9;margin-top:8px;">
+    {% if empresa %}✏️ Editar Empresa{% else %}🏢 Nova Empresa{% endif %}
+  </h2>
+</div>
+
+<div style="max-width:640px;">
+  <div class="m-card">
+    <form method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="m-grid2">
+        <div class="m-form-group">
+          <label class="m-form-label">Nome Oficial *</label>
+          <input type="text" name="nome" class="m-form-control" value="{{ empresa.nome|default:'' }}" required>
+        </div>
+        <div class="m-form-group">
+          <label class="m-form-label">Nome Fantasia</label>
+          <input type="text" name="nome_fantasia" class="m-form-control" value="{{ empresa.nome_fantasia|default:'' }}">
+        </div>
+      </div>
+      <div class="m-grid2">
+        <div class="m-form-group">
+          <label class="m-form-label">Telefone</label>
+          <input type="text" name="telefone" class="m-form-control" value="{{ empresa.telefone|default:'' }}" placeholder="(00) 0000-0000">
+        </div>
+        <div class="m-form-group">
+          <label class="m-form-label">Cor Principal</label>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <input type="color" name="cor_principal" value="{{ empresa.cor_principal|default:'#1a3a8f' }}" style="width:48px;height:40px;border:none;background:none;cursor:pointer;border-radius:6px;">
+            <span style="font-size:12px;color:#64748b;">Cor dos botões e header da empresa</span>
+          </div>
+        </div>
+      </div>
+      <div class="m-form-group">
+        <label class="m-form-label">Endereço</label>
+        <input type="text" name="endereco" class="m-form-control" value="{{ empresa.endereco|default:'' }}" placeholder="Rua, número, bairro">
+      </div>
+      <div class="m-form-group">
+        <label class="m-form-label">Cidade</label>
+        <input type="text" name="cidade" class="m-form-control" value="{{ empresa.cidade|default:'' }}" placeholder="Ex: Ocara, Fortaleza, Caucaia">
+      </div>
+      <div class="m-form-group">
+        <label class="m-form-label">Logo (opcional)</label>
+        <input type="file" name="logo" class="m-form-control" accept="image/*">
+        {% if empresa and empresa.logo %}
+        <div style="margin-top:8px;display:flex;align-items:center;gap:10px;">
+          <img src="{{ empresa.logo.url }}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid #334155;">
+          <span style="font-size:11px;color:#64748b;">Logo atual (envie novo para substituir)</span>
+        </div>
+        {% endif %}
+      </div>
+      <div class="m-form-group" style="display:flex;align-items:center;gap:10px;">
+        <input type="checkbox" name="ativo" id="ativo_check" {% if not empresa or empresa.ativo %}checked{% endif %} style="width:16px;height:16px;cursor:pointer;">
+        <label for="ativo_check" style="font-size:13px;font-weight:600;color:#94a3b8;cursor:pointer;">Empresa ativa</label>
+      </div>
+      <button type="submit" class="m-btn m-btn-primary m-btn-full" style="margin-top:8px;">
+        💾 SALVAR EMPRESA
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}
