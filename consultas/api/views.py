@@ -450,13 +450,13 @@ def api_marcar_consulta(request):
                 )
                 conta.paciente = paciente
                 conta.save()
-       else:
-            # Sem login: busca paciente existente pelo telefone e nome, ou cria um novo
-            paciente, created = Paciente.objects.get_or_create(
-                telefone=telefone,
-                nome=nome,
-                defaults={'empresa': agenda.empresa}
-            )
+           else:
+                # Sem login: busca paciente existente pelo telefone e nome, ou cria um novo
+                paciente, created = Paciente.objects.get_or_create(
+                    telefone=telefone,
+                    nome=nome,
+                    defaults={'empresa': agenda.empresa}
+                )
 
         ultima = Consulta.objects.filter(agenda=agenda).order_by('-ficha').first()
         ficha = (ultima.ficha + 1) if ultima else 1
