@@ -16,7 +16,10 @@ class EmpresaAdmin(admin.ModelAdmin):
 
 admin.site.register(PerfilUsuario)
 admin.site.register(PacienteConta)
-admin.site.register(Especialidade)
+@admin.register(Especialidade)
+class EspecialidadeAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'empresa', 'ativo')
+    list_filter = ('empresa', 'ativo')
 admin.site.register(Agenda)
 admin.site.register(Paciente)
 admin.site.register(Consulta)
