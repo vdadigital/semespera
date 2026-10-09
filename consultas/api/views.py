@@ -427,7 +427,6 @@ def api_marcar_consulta(request):
             conta = request.user.paciente_conta
 
             # Bloqueia marcação em nome de outro paciente
-            # (nome/telefone devem bater com os da conta)
             if conta.paciente:
                 # Reutiliza o mesmo Paciente permanente
                 paciente = conta.paciente
@@ -450,6 +449,7 @@ def api_marcar_consulta(request):
                 )
                 conta.paciente = paciente
                 conta.save()
+     
             else:
                 # Sem login: busca paciente existente pelo telefone e nome, ou cria um novo
                 paciente, created = Paciente.objects.get_or_create(
