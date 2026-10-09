@@ -452,7 +452,7 @@ def api_marcar_consulta(request):
      
             else:
                 # Sem login: busca paciente existente pelo telefone e nome, ou cria um novo
-                paciente, created = Paciente.objects.get_or_create(
+                paciente.created = Paciente.objects.get_or_create(
                     telefone=telefone,
                     nome=nome,
                     defaults={'empresa': agenda.empresa}
