@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import FileExtensionValidator
+from django.core.exceptions import ValidationError
 
 # ──────────────────────────────────────────
 # EMPRESA
@@ -206,3 +207,17 @@ class PacienteConta(models.Model):
     class Meta:
         verbose_name = 'Conta de Paciente'
         verbose_name_plural = 'Contas de Pacientes'
+    
+class PacienteConta(models.Model):
+    # ... (mantenha os campos que já tem aqui: usuario, paciente, telefone, etc.) ...
+
+    def clean(self):
+        # Bloqueia a alteração do paciente vinculado se a conta já existir e tiver um paciente
+        if self.pk:
+            conta_existente = PacienteConta.objects.get(pk=self.pk)
+            if conta_existente.paciente and self.paciente != conta_existente.paciente:
+                raise ValidationError({'paciente': 'Não é permitido alterar o paciente original vinculado a esta conta.'})
+
+    def save(self, *args, **kwargs):
+        self.full_clean()  # Força a execução do clean() antes de guardar
+        super().save(*args, **kwargs)
