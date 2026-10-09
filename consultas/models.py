@@ -162,6 +162,8 @@ class PacienteConta(models.Model):
     telefone = models.CharField(max_length=20, blank=True)
     criado_em = models.DateTimeField(auto_now_add=True)
 
+    from django.core.exceptions import ValidationError
+
     def __str__(self):
         return f'Paciente: {self.usuario.username}'
 
