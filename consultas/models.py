@@ -47,7 +47,8 @@ class PerfilUsuario(models.Model):
 class Especialidade(models.Model):
     empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name='especialidades', null=True, blank=True)
     nome = models.CharField(max_length=100)
-    
+    # (os seus outros campos: nome, empresa, icone, etc.)
+    ativo = models.BooleanField(default=True)    
     # Aqui está o nosso novo campo com suporte a SVG e validação de segurança!
     icone = models.FileField(
         upload_to='icones_especialidades/', 
