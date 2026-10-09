@@ -170,3 +170,39 @@ class PacienteConta(models.Model):
     class Meta:
         verbose_name = 'Conta de Paciente'
         verbose_name_plural = 'Contas de Pacientes'
+
+class PacienteConta(models.Model):
+    usuario = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='paciente_conta'
+    )
+    paciente = models.ForeignKey(
+        Paciente,
+        on_delete=models.CASCADE,
+        related_name='conta',
+        null=True,
+        blank=True,
+    )
+    telefone = models.CharField(max_length=20, blank=True)
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'Paciente: {self.usuario.username}'
+
+    # --- NOVO CÓDIGO ABAIXO ---
+    def clean(self):
+        super().clean()
+        # Verifica se o utilizador já possui um perfil de atendente/empresa
+        if hasattr(self.usuario, 'perfil'):
+            raise ValidationError(
+                "Regra de Negócio Violada: Um utilizador não pode ser paciente e atendente ao mesmo tempo."
+            )
+
+    def save(self, *args, **kwargs):
+        self.full_clean()  # Força a validação antes de guardar na base de dados
+        super().save(*args, **kwargs)
+
+    class Meta:
+        verbose_name = 'Conta de Paciente'
+        verbose_name_plural = 'Contas de Pacientes'
