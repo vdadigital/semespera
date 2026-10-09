@@ -423,14 +423,11 @@ def api_marcar_consulta(request):
         # Se não está logado, cria novo Paciente (fluxo sem conta).
         paciente = None
 
-        if request.user.is_authenticated and _is_paciente(request.user):
+       if request.user.is_authenticated and _is_paciente(request.user):
             conta = request.user.paciente_conta
 
-            # Bloqueia marcação em nome de outro paciente
             if conta.paciente:
-                # Reutiliza o mesmo Paciente permanente
                 paciente = conta.paciente
-                # Atualiza nome/telefone se necessário
                 atualizado = False
                 if paciente.nome != nome:
                     paciente.nome = nome
@@ -441,7 +438,6 @@ def api_marcar_consulta(request):
                 if atualizado:
                     paciente.save()
             else:
-                # Cria Paciente e vincula permanentemente à conta
                 paciente = Paciente.objects.create(
                     empresa=agenda.empresa,
                     nome=nome,
@@ -449,14 +445,12 @@ def api_marcar_consulta(request):
                 )
                 conta.paciente = paciente
                 conta.save()
-     
-            else:
-                # Sem login: busca paciente existente pelo telefone e nome, ou cria um novo
-                paciente.created = Paciente.objects.get_or_create(
-                    telefone=telefone,
-                    nome=nome,
-                    defaults={'empresa': agenda.empresa}
-                )
+        else:
+            paciente, created = Paciente.objects.get_or_create(
+                telefone=telefone,
+                nome=nome,
+                defaults={'empresa': agenda.empresa}
+            )
 
         ultima = Consulta.objects.filter(agenda=agenda).order_by('-ficha').first()
         ficha = (ultima.ficha + 1) if ultima else 1
